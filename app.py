@@ -1,7 +1,6 @@
 import os
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, request, jsonify
 from flask_cors import CORS
-from flask_restx import Api
 from dotenv import load_dotenv
 
 from src.routes import register_routes
@@ -14,21 +13,11 @@ def create_app() -> Flask:
     app.config["SECRET_KEY"] = os.getenv("APP_SECRET_KEY", "dev")
     CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-    # Initialize API with Swagger documentation
-    api = Api(
-        app,
-        version='1.0',
-        title='MathQuest API',
-        description='Interactive Math Learning App API',
-        doc='/docs',
-        prefix='/api'
-    )
-
     # Initialize DB
     init_db()
 
-    # Register routes with API
-    register_routes(api)
+    # Register routes
+    register_routes(app)
 
     @app.get("/api/health")
     def health():
