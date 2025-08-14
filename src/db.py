@@ -1,12 +1,33 @@
 import os
+import re
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session, DeclarativeBase
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# Use DATABASE_URL from environment, with a fallback for local development
+def convert_psql_to_sqlalchemy(psql_url):
+    """Convert psql connection string to SQLAlchemy format"""
+    # Remove 'psql' prefix if present
+    if psql_url.startswith('psql '):
+        psql_url = psql_url[5:]
+    
+    # Convert postgres:// to postgresql+pg8000://
+    if psql_url.startswith('postgres://'):
+        sqlalchemy_url = psql_url.replace('postgres://', 'postgresql+pg8000://', 1)
+    elif psql_url.startswith('postgresql://'):
+        sqlalchemy_url = psql_url.replace('postgresql://', 'postgresql+pg8000://', 1)
+    else:
+        sqlalchemy_url = psql_url
+    
+    return sqlalchemy_url
+
+# Get DATABASE_URL from environment
 DATABASE_URL = os.getenv("DATABASE_URL")
+
+# Convert psql format to SQLAlchemy format if needed
+if DATABASE_URL and DATABASE_URL.startswith('psql '):
+    DATABASE_URL = convert_psql_to_sqlalchemy(DATABASE_URL)
 
 # Only create engine if DATABASE_URL is available
 if DATABASE_URL:
