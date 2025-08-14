@@ -1,55 +1,38 @@
 import os
-import re
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session, DeclarativeBase
 from dotenv import load_dotenv
 
 load_dotenv()
 
-def convert_psql_to_sqlalchemy(psql_url):
-    """Convert psql connection string to SQLAlchemy format"""
-    # Remove 'psql' prefix if present
-    if psql_url.startswith('psql '):
-        psql_url = psql_url[5:]
-    
-    # Remove any surrounding quotes
-    psql_url = psql_url.strip('"\'')
-    
-    # Convert postgres:// to postgresql+pg8000://
-    if psql_url.startswith('postgres://'):
-        sqlalchemy_url = psql_url.replace('postgres://', 'postgresql+pg8000://', 1)
-    elif psql_url.startswith('postgresql://'):
-        sqlalchemy_url = psql_url.replace('postgresql://', 'postgresql+pg8000://', 1)
-    else:
-        sqlalchemy_url = psql_url
-    
-    return sqlalchemy_url
-
 # Get DATABASE_URL from environment
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Convert psql format to SQLAlchemy format if needed
-if DATABASE_URL and DATABASE_URL.startswith('psql '):
-    DATABASE_URL = convert_psql_to_sqlalchemy(DATABASE_URL)
-
 # Only create engine if DATABASE_URL is available
 if DATABASE_URL:
-    # Configure engine with serverless-friendly settings
-    engine = create_engine(
-        DATABASE_URL, 
-        pool_pre_ping=True, 
-        future=True,
-        # Serverless-friendly pool settings
-        pool_size=1,
-        max_overflow=0,
-        pool_recycle=300,
-        pool_timeout=20
-    )
-    SessionLocal = scoped_session(sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True))
+    try:
+        # Configure engine with serverless-friendly settings
+        engine = create_engine(
+            DATABASE_URL, 
+            pool_pre_ping=True, 
+            future=True,
+            # Serverless-friendly pool settings
+            pool_size=1,
+            max_overflow=0,
+            pool_recycle=300,
+            pool_timeout=20
+        )
+        SessionLocal = scoped_session(sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True))
+        print("Database engine created successfully")
+    except Exception as e:
+        print(f"Failed to create database engine: {e}")
+        engine = None
+        SessionLocal = None
 else:
     # Create a dummy engine for serverless environments without database
     engine = None
     SessionLocal = None
+    print("No DATABASE_URL provided, skipping database setup")
 
 
 class Base(DeclarativeBase):
