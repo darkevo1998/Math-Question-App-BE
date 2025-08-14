@@ -7,6 +7,7 @@ load_dotenv()
 
 # Get DATABASE_URL from environment
 DATABASE_URL = os.getenv("DATABASE_URL")
+print(f"DEBUG: DATABASE_URL from environment: {DATABASE_URL}")
 
 # Only create engine if DATABASE_URL is available
 if DATABASE_URL:
@@ -23,16 +24,16 @@ if DATABASE_URL:
             pool_timeout=20
         )
         SessionLocal = scoped_session(sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True))
-        print("Database engine created successfully")
+        print("DEBUG: Database engine created successfully")
     except Exception as e:
-        print(f"Failed to create database engine: {e}")
+        print(f"DEBUG: Failed to create database engine: {e}")
         engine = None
         SessionLocal = None
 else:
     # Create a dummy engine for serverless environments without database
     engine = None
     SessionLocal = None
-    print("No DATABASE_URL provided, skipping database setup")
+    print("DEBUG: No DATABASE_URL provided, skipping database setup")
 
 
 class Base(DeclarativeBase):
