@@ -9,8 +9,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:
-            # Get the DATABASE_URL
-            database_url = os.getenv("DATABASE_URL")
+            # Get the DATABASE_URL - prefer non-pooling for serverless
+            database_url = os.getenv("POSTGRES_URL_NON_POOLING") or os.getenv("DATABASE_URL")
             
             # Test basic SQLAlchemy import
             try:

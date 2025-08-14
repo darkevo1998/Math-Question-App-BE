@@ -12,7 +12,7 @@ from sqlalchemy.orm import sessionmaker, Session
 
 def create_db_session():
     """Create a database session using the environment variable"""
-    database_url = os.getenv("DATABASE_URL")
+    database_url = os.getenv("POSTGRES_URL_NON_POOLING") or os.getenv("DATABASE_URL")
     if not database_url:
         return None
     
