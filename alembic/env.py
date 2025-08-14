@@ -26,7 +26,11 @@ from src import models  # noqa
 target_metadata = Base.metadata
 
 # overwrite sqlalchemy.url with env var or default to PostgreSQL
-config.set_main_option("sqlalchemy.url", os.getenv("DATABASE_URL", "postgresql+pg8000://postgres:admin1234@localhost:5432/mathquest"))
+database_url = os.getenv("DATABASE_URL", "postgresql+pg8000://postgres:admin1234@localhost:5432/mathquest")
+# Fix postgres:// to postgresql:// for SQLAlchemy compatibility
+if database_url.startswith('postgres://'):
+    database_url = database_url.replace('postgres://', 'postgresql://', 1)
+config.set_main_option("sqlalchemy.url", database_url)
 
 
 def run_migrations_offline():

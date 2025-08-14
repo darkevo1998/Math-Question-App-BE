@@ -31,7 +31,9 @@ if DATABASE_URL:
             # Neon-specific settings
             connect_args={
                 "sslmode": "require"
-            }
+            },
+            # Explicitly use pg8000 driver
+            module="pg8000"
         )
         SessionLocal = scoped_session(sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True))
         print("DEBUG: Database engine created successfully")

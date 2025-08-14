@@ -50,15 +50,17 @@ class handler(BaseHTTPRequestHandler):
                     if test_url.startswith('postgres://'):
                         test_url = test_url.replace('postgres://', 'postgresql://', 1)
                     
-                    engine = create_engine(
-                        test_url,
-                        pool_pre_ping=True,
-                        future=True,
-                        pool_size=1,
-                        max_overflow=0,
-                        pool_recycle=300,
-                        pool_timeout=20
-                    )
+                                         engine = create_engine(
+                         test_url,
+                         pool_pre_ping=True,
+                         future=True,
+                         pool_size=1,
+                         max_overflow=0,
+                         pool_recycle=300,
+                         pool_timeout=20,
+                         # Explicitly use pg8000 driver
+                         module="pg8000"
+                     )
                     debug_info['engine_creation'] = 'SUCCESS'
                     
                     # Test connection

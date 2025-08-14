@@ -27,7 +27,7 @@ class handler(BaseHTTPRequestHandler):
                     if database_url.startswith('postgres://'):
                         database_url = database_url.replace('postgres://', 'postgresql://', 1)
                     
-                    engine = create_engine(database_url)
+                    engine = create_engine(database_url, module="pg8000")
                     engine_status = "SUCCESS"
                 except Exception as e:
                     engine_status = f"FAILED: {e}"
@@ -41,7 +41,7 @@ class handler(BaseHTTPRequestHandler):
                     if test_url.startswith('postgres://'):
                         test_url = test_url.replace('postgres://', 'postgresql://', 1)
                     
-                    engine = create_engine(test_url)
+                    engine = create_engine(test_url, module="pg8000")
                     with engine.connect() as conn:
                         result = conn.execute("SELECT 1")
                         connection_status = "SUCCESS"

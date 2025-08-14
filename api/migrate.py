@@ -28,7 +28,12 @@ class handler(BaseHTTPRequestHandler):
                 # Create Alembic config
                 alembic_cfg = Config()
                 alembic_cfg.set_main_option("script_location", "alembic")
-                alembic_cfg.set_main_option("sqlalchemy.url", os.getenv("DATABASE_URL"))
+                
+                # Fix postgres:// to postgresql:// for SQLAlchemy compatibility
+                database_url = os.getenv("DATABASE_URL")
+                if database_url and database_url.startswith('postgres://'):
+                    database_url = database_url.replace('postgres://', 'postgresql://', 1)
+                alembic_cfg.set_main_option("sqlalchemy.url", database_url)
                 
                 # Run migration
                 command.upgrade(alembic_cfg, "head")
