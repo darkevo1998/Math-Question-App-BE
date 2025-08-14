@@ -12,6 +12,9 @@ def convert_psql_to_sqlalchemy(psql_url):
     if psql_url.startswith('psql '):
         psql_url = psql_url[5:]
     
+    # Remove any surrounding quotes
+    psql_url = psql_url.strip('"\'')
+    
     # Convert postgres:// to postgresql+pg8000://
     if psql_url.startswith('postgres://'):
         sqlalchemy_url = psql_url.replace('postgres://', 'postgresql+pg8000://', 1)
