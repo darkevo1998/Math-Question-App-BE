@@ -13,6 +13,9 @@ def register_routes(app):
     @app.route('/api/lessons', methods=['GET'])
     def list_lessons():
         """List all lessons with progress for the demo user"""
+        if SessionLocal is None:
+            return jsonify({'error': 'DatabaseError', 'message': 'Database not configured'}), 503
+            
         try:
             db: Session = SessionLocal()
             try:
@@ -28,6 +31,9 @@ def register_routes(app):
     @app.route('/api/lessons/<int:lesson_id>', methods=['GET'])
     def get_lesson(lesson_id):
         """Get lesson details with problems (correct answers not included)"""
+        if SessionLocal is None:
+            return jsonify({'error': 'DatabaseError', 'message': 'Database not configured'}), 503
+            
         try:
             db: Session = SessionLocal()
             try:
@@ -45,6 +51,9 @@ def register_routes(app):
     @app.route('/api/lessons/<int:lesson_id>/submit', methods=['POST'])
     def submit_lesson(lesson_id):
         """Submit answers for a lesson (idempotent)"""
+        if SessionLocal is None:
+            return jsonify({'error': 'DatabaseError', 'message': 'Database not configured'}), 503
+            
         try:
             db: Session = SessionLocal()
             try:
@@ -75,6 +84,9 @@ def register_routes(app):
     @app.route('/api/profile', methods=['GET'])
     def get_profile():
         """Get user profile and statistics"""
+        if SessionLocal is None:
+            return jsonify({'error': 'DatabaseError', 'message': 'Database not configured'}), 503
+            
         from sqlalchemy import select, func
         from .models import User, Problem, UserProblemProgress
         try:
