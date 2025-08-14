@@ -18,7 +18,7 @@ if DATABASE_URL:
             print(f"DEBUG: Fixed DATABASE_URL to: {DATABASE_URL}")
         
         print(f"DEBUG: Attempting to create engine with URL: {DATABASE_URL}")
-        # Configure engine with serverless-friendly settings
+        # Configure engine with serverless-friendly settings for Supabase
         engine = create_engine(
             DATABASE_URL, 
             pool_pre_ping=True, 
@@ -28,12 +28,12 @@ if DATABASE_URL:
             max_overflow=0,
             pool_recycle=300,
             pool_timeout=20,
-            # Neon-specific settings
+            # Explicitly use pg8000 driver
+            module="pg8000",
+            # Supabase-specific settings
             connect_args={
                 "sslmode": "require"
-            },
-            # Explicitly use pg8000 driver
-            module="pg8000"
+            }
         )
         SessionLocal = scoped_session(sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True))
         print("DEBUG: Database engine created successfully")

@@ -59,7 +59,11 @@ class handler(BaseHTTPRequestHandler):
                          pool_recycle=300,
                          pool_timeout=20,
                          # Explicitly use pg8000 driver
-                         module="pg8000"
+                         module="pg8000",
+                         # Supabase-specific settings
+                         connect_args={
+                             "sslmode": "require"
+                         }
                      )
                     debug_info['engine_creation'] = 'SUCCESS'
                     
