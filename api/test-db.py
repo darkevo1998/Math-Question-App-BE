@@ -23,6 +23,10 @@ class handler(BaseHTTPRequestHandler):
             engine_status = "NOT_ATTEMPTED"
             if database_url:
                 try:
+                    # Fix postgres:// to postgresql:// for SQLAlchemy compatibility
+                    if database_url.startswith('postgres://'):
+                        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+                    
                     engine = create_engine(database_url)
                     engine_status = "SUCCESS"
                 except Exception as e:
@@ -32,7 +36,12 @@ class handler(BaseHTTPRequestHandler):
             connection_status = "NOT_ATTEMPTED"
             if database_url and engine_status == "SUCCESS":
                 try:
-                    engine = create_engine(database_url)
+                    # Fix postgres:// to postgresql:// for SQLAlchemy compatibility
+                    test_url = database_url
+                    if test_url.startswith('postgres://'):
+                        test_url = test_url.replace('postgres://', 'postgresql://', 1)
+                    
+                    engine = create_engine(test_url)
                     with engine.connect() as conn:
                         result = conn.execute("SELECT 1")
                         connection_status = "SUCCESS"

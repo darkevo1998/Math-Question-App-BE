@@ -27,10 +27,24 @@ if DATABASE_URL:
             pool_size=1,
             max_overflow=0,
             pool_recycle=300,
-            pool_timeout=20
+            pool_timeout=20,
+            # Neon-specific settings
+            connect_args={
+                "sslmode": "require"
+            }
         )
         SessionLocal = scoped_session(sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True))
         print("DEBUG: Database engine created successfully")
+        
+        # Test the connection immediately
+        try:
+            with engine.connect() as conn:
+                result = conn.execute("SELECT 1")
+                print("DEBUG: Database connection test successful")
+        except Exception as conn_e:
+            print(f"DEBUG: Database connection test failed: {conn_e}")
+            raise conn_e
+            
     except Exception as e:
         print(f"DEBUG: Failed to create database engine: {e}")
         print(f"DEBUG: Exception type: {type(e)}")

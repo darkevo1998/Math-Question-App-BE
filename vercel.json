@@ -16,6 +16,10 @@
     {
       "src": "api/test-db.py",
       "use": "@vercel/python"
+    },
+    {
+      "src": "api/debug-db.py",
+      "use": "@vercel/python"
     }
   ],
   "routes": [
@@ -30,6 +34,10 @@
     {
       "src": "/api/test-db",
       "dest": "/api/test-db.py"
+    },
+    {
+      "src": "/api/debug-db",
+      "dest": "/api/debug-db.py"
     },
     {
       "src": "/(.*)",
