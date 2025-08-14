@@ -13,8 +13,13 @@ def create_app() -> Flask:
     app.config["SECRET_KEY"] = os.getenv("APP_SECRET_KEY", "dev")
     CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-    # Initialize DB
-    init_db()
+    # Only initialize DB if not in serverless environment
+    if not os.getenv("VERCEL"):
+        try:
+            init_db()
+        except Exception as e:
+            print(f"Database initialization failed: {e}")
+            # Continue without DB initialization in serverless
 
     # Register routes
     register_routes(app)
