@@ -7,6 +7,9 @@ load_dotenv()
 
 # Get DATABASE_URL from environment
 DATABASE_URL = os.getenv("DATABASE_URL")
+# Fallback to non-pooling URL if available
+if not DATABASE_URL:
+    DATABASE_URL = os.getenv("POSTGRES_URL_NON_POOLING")
 print(f"DEBUG: DATABASE_URL from environment: {DATABASE_URL}")
 
 # Only create engine if DATABASE_URL is available
