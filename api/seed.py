@@ -6,11 +6,23 @@ import json
 # Add the backend directory to Python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.db import engine, SessionLocal
 from src.models import User, Lesson, Problem, ProblemOption
-from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy import select, create_engine
+from sqlalchemy.orm import sessionmaker, Session
 
+def create_db_session():
+    """Create a database session using the environment variable"""
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        return None
+    
+    # Convert postgres:// to postgresql:// if needed
+    if database_url.startswith('postgres://'):
+        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    
+    engine = create_engine(database_url)
+    SessionLocal = sessionmaker(bind=engine)
+    return SessionLocal()
 
 def ensure_demo_user(db: Session):
     user = db.get(User, 1)
@@ -18,7 +30,6 @@ def ensure_demo_user(db: Session):
         user = User(id=1, username="demo", total_xp=0, current_streak=0, best_streak=0)
         db.add(user)
     return user
-
 
 def create_lessons(db: Session):
     if db.scalar(select(Lesson).limit(1)):
@@ -80,22 +91,21 @@ def create_lessons(db: Session):
     
     return "Lessons created successfully"
 
-
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:
-            if SessionLocal is None:
+            db = create_db_session()
+            if db is None:
                 self.send_response(503)
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({
                     'error': 'DatabaseError', 
-                    'message': 'Database not configured',
+                    'message': 'DATABASE_URL not configured',
                     'debug': f"DATABASE_URL: {os.getenv('DATABASE_URL')}"
                 }).encode())
                 return
 
-            db = SessionLocal()
             try:
                 ensure_demo_user(db)
                 result = create_lessons(db)

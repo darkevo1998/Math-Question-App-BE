@@ -12,6 +12,12 @@ print(f"DEBUG: DATABASE_URL from environment: {DATABASE_URL}")
 # Only create engine if DATABASE_URL is available
 if DATABASE_URL:
     try:
+        # Fix postgres:// to postgresql:// for SQLAlchemy compatibility
+        if DATABASE_URL.startswith('postgres://'):
+            DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+            print(f"DEBUG: Fixed DATABASE_URL to: {DATABASE_URL}")
+        
+        print(f"DEBUG: Attempting to create engine with URL: {DATABASE_URL}")
         # Configure engine with serverless-friendly settings
         engine = create_engine(
             DATABASE_URL, 
@@ -27,6 +33,9 @@ if DATABASE_URL:
         print("DEBUG: Database engine created successfully")
     except Exception as e:
         print(f"DEBUG: Failed to create database engine: {e}")
+        print(f"DEBUG: Exception type: {type(e)}")
+        import traceback
+        print(f"DEBUG: Full traceback: {traceback.format_exc()}")
         engine = None
         SessionLocal = None
 else:

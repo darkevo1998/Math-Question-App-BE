@@ -12,6 +12,10 @@
     {
       "src": "api/seed.py",
       "use": "@vercel/python"
+    },
+    {
+      "src": "api/test-db.py",
+      "use": "@vercel/python"
     }
   ],
   "routes": [
@@ -22,6 +26,10 @@
     {
       "src": "/api/seed",
       "dest": "/api/seed.py"
+    },
+    {
+      "src": "/api/test-db",
+      "dest": "/api/test-db.py"
     },
     {
       "src": "/(.*)",
