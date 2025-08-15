@@ -14,43 +14,11 @@
       "use": "@vercel/python"
     },
     {
-      "src": "api/test-db.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "api/debug-db.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "api/test-env.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "api/debug-migrate.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "api/test-connection.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "api/test-modules.py",
-      "use": "@vercel/python"
-    },
-    {
       "src": "api/migrate-simple.py",
       "use": "@vercel/python"
     },
     {
-      "src": "api/test-models.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "api/test-alembic.py",
-      "use": "@vercel/python"
-    },
-    {
-      "src": "api/check-db.py",
+      "src": "api/test-all.py",
       "use": "@vercel/python"
     }
   ],
@@ -64,44 +32,12 @@
       "dest": "/api/seed.py"
     },
     {
-      "src": "/api/test-db",
-      "dest": "/api/test-db.py"
-    },
-    {
-      "src": "/api/debug-db",
-      "dest": "/api/debug-db.py"
-    },
-    {
-      "src": "/api/test-env",
-      "dest": "/api/test-env.py"
-    },
-    {
-      "src": "/api/debug-migrate",
-      "dest": "/api/debug-migrate.py"
-    },
-    {
-      "src": "/api/test-connection",
-      "dest": "/api/test-connection.py"
-    },
-    {
-      "src": "/api/test-modules",
-      "dest": "/api/test-modules.py"
-    },
-    {
       "src": "/api/migrate-simple",
       "dest": "/api/migrate-simple.py"
     },
     {
-      "src": "/api/test-models",
-      "dest": "/api/test-models.py"
-    },
-    {
-      "src": "/api/test-alembic",
-      "dest": "/api/test-alembic.py"
-    },
-    {
-      "src": "/api/check-db",
-      "dest": "/api/check-db.py"
+      "src": "/api/test-all",
+      "dest": "/api/test-all.py"
     },
     {
       "src": "/(.*)",
