@@ -26,8 +26,9 @@ class handler(BaseHTTPRequestHandler):
 
             # Test if we can actually connect to the database
             try:
+                from sqlalchemy import text
                 with engine.connect() as conn:
-                    conn.execute("SELECT 1")
+                    conn.execute(text("SELECT 1"))
             except Exception as conn_error:
                 self.send_response(503)
                 self.send_header('Content-Type', 'application/json')

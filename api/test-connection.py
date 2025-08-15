@@ -58,8 +58,9 @@ class handler(BaseHTTPRequestHandler):
                     
                     # Test 3: Try to connect
                     try:
+                        from sqlalchemy import text
                         with engine.connect() as conn:
-                            result = conn.execute("SELECT 1")
+                            result = conn.execute(text("SELECT 1"))
                             debug_info['manual_tests']['connection_test'] = 'SUCCESS'
                     except Exception as conn_e:
                         debug_info['manual_tests']['connection_test'] = 'FAILED'

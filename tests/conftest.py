@@ -15,14 +15,15 @@ from src.models import User, Lesson, Problem, ProblemOption  # noqa: E402
 @pytest.fixture(scope="session", autouse=True)
 def setup_db():
     # Drop and recreate test database
+    from sqlalchemy import text
     with engine.connect() as conn:
-        conn.execute("DROP DATABASE IF EXISTS mathquest_test")
-        conn.execute("CREATE DATABASE mathquest_test")
+        conn.execute(text("DROP DATABASE IF EXISTS mathquest_test"))
+        conn.execute(text("CREATE DATABASE mathquest_test"))
     Base.metadata.create_all(bind=engine)
     yield
     # Cleanup
     with engine.connect() as conn:
-        conn.execute("DROP DATABASE IF EXISTS mathquest_test")
+        conn.execute(text("DROP DATABASE IF EXISTS mathquest_test"))
 
 
 @pytest.fixture()

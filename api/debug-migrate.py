@@ -27,8 +27,9 @@ class handler(BaseHTTPRequestHandler):
             # Test database connection if engine exists
             if engine is not None:
                 try:
+                    from sqlalchemy import text
                     with engine.connect() as conn:
-                        result = conn.execute("SELECT version()")
+                        result = conn.execute(text("SELECT version()"))
                         version = result.fetchone()[0]
                         debug_info['database']['connection_test'] = 'SUCCESS'
                         debug_info['database']['postgres_version'] = version

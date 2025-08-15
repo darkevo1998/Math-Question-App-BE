@@ -30,81 +30,32 @@ if DATABASE_URL:
         # Configure engine with more robust settings for Supabase
         print(f"DEBUG: Creating engine with URL: {DATABASE_URL}")
         
-        # Try with explicit pg8000 driver first
-        try:
-            engine = create_engine(
-                DATABASE_URL, 
-                pool_pre_ping=True, 
-                future=True,
-                # Serverless-friendly pool settings
-                pool_size=1,
-                max_overflow=0,
-                pool_recycle=300,
-                pool_timeout=30,
-                # Explicitly use pg8000 driver
-                module="pg8000",
-                # More flexible SSL settings
-                connect_args={
-                    "sslmode": "require",
-                    "connect_timeout": 10,
-                    "application_name": "math-question-app"
-                }
-            )
-            print("DEBUG: Engine created successfully with pg8000 driver")
-        except Exception as pg8000_error:
-            print(f"DEBUG: Failed to create engine with pg8000: {pg8000_error}")
-            print("DEBUG: Trying with psycopg2 driver...")
-            
-            try:
-                # Try with psycopg2 driver
-                engine = create_engine(
-                    DATABASE_URL, 
-                    pool_pre_ping=True, 
-                    future=True,
-                    # Serverless-friendly pool settings
-                    pool_size=1,
-                    max_overflow=0,
-                    pool_recycle=300,
-                    pool_timeout=30,
-                    # Use psycopg2 driver
-                    module="psycopg2",
-                    # More flexible SSL settings
-                    connect_args={
-                        "sslmode": "require",
-                        "connect_timeout": 10,
-                        "application_name": "math-question-app"
-                    }
-                )
-                print("DEBUG: Engine created successfully with psycopg2 driver")
-            except Exception as psycopg2_error:
-                print(f"DEBUG: Failed to create engine with psycopg2: {psycopg2_error}")
-                print("DEBUG: Trying without explicit driver specification...")
-                
-                # Final fallback: let SQLAlchemy choose the driver
-                engine = create_engine(
-                    DATABASE_URL, 
-                    pool_pre_ping=True, 
-                    future=True,
-                    # Serverless-friendly pool settings
-                    pool_size=1,
-                    max_overflow=0,
-                    pool_recycle=300,
-                    pool_timeout=30,
-                    # More flexible SSL settings
-                    connect_args={
-                        "sslmode": "require",
-                        "connect_timeout": 10,
-                        "application_name": "math-question-app"
-                    }
-                )
-                print("DEBUG: Engine created successfully without explicit driver")
+        # Use auto-detection since that's what works
+        engine = create_engine(
+            DATABASE_URL, 
+            pool_pre_ping=True, 
+            future=True,
+            # Serverless-friendly pool settings
+            pool_size=1,
+            max_overflow=0,
+            pool_recycle=300,
+            pool_timeout=30,
+            # More flexible SSL settings
+            connect_args={
+                "sslmode": "require",
+                "connect_timeout": 10,
+                "application_name": "math-question-app"
+            }
+        )
+        print("DEBUG: Engine created successfully with auto-detection")
         SessionLocal = scoped_session(sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True))
         print("DEBUG: Database engine created successfully")
         
         # Test the connection immediately
         try:
+            from sqlalchemy import text
             with engine.connect() as conn:
-                result = conn.execute("SELECT 1")
+                result = conn.execute(text("SELECT 1"))
                 print("DEBUG: Database connection test successful")
         except Exception as conn_e:
             print(f"DEBUG: Database connection test failed: {conn_e}")
