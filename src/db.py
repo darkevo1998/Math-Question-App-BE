@@ -9,6 +9,9 @@ load_dotenv()
 DATABASE_URL = os.getenv("POSTGRES_URL_NON_POOLING") or os.getenv("DATABASE_URL")
 print(f"DEBUG: DATABASE_URL from environment: {DATABASE_URL}")
 
+# Store the original URL for use in other modules
+ORIGINAL_DATABASE_URL = DATABASE_URL
+
 # Only create engine if DATABASE_URL is available
 if DATABASE_URL:
     try:
@@ -18,7 +21,8 @@ if DATABASE_URL:
             print(f"DEBUG: Fixed DATABASE_URL to: {DATABASE_URL}")
         
         print(f"DEBUG: Attempting to create engine with URL: {DATABASE_URL}")
-        # Configure engine with serverless-friendly settings for Supabase
+        
+        # Configure engine with more robust settings for Supabase
         engine = create_engine(
             DATABASE_URL, 
             pool_pre_ping=True, 
@@ -27,12 +31,14 @@ if DATABASE_URL:
             pool_size=1,
             max_overflow=0,
             pool_recycle=300,
-            pool_timeout=20,
-            # Explicitly use pg8000 driver
-            module="pg8000",
-            # Supabase-specific settings
+            pool_timeout=30,
+            # Don't specify module to let SQLAlchemy choose the best driver
+            # module="pg8000",
+            # More flexible SSL settings
             connect_args={
-                "sslmode": "require"
+                "sslmode": "require",
+                "connect_timeout": 10,
+                "application_name": "math-question-app"
             }
         )
         SessionLocal = scoped_session(sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True))
@@ -45,7 +51,9 @@ if DATABASE_URL:
                 print("DEBUG: Database connection test successful")
         except Exception as conn_e:
             print(f"DEBUG: Database connection test failed: {conn_e}")
-            raise conn_e
+            # Don't raise the exception, just log it and continue
+            print(f"DEBUG: Connection test failed but continuing: {conn_e}")
+            # The engine is still created, just the test failed
             
     except Exception as e:
         print(f"DEBUG: Failed to create database engine: {e}")

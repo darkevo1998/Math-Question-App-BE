@@ -24,16 +24,36 @@ class handler(BaseHTTPRequestHandler):
                 }).encode())
                 return
 
+            # Test if we can actually connect to the database
+            try:
+                with engine.connect() as conn:
+                    conn.execute("SELECT 1")
+            except Exception as conn_error:
+                self.send_response(503)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({
+                    'error': 'DatabaseConnectionError', 
+                    'message': 'Cannot connect to database',
+                    'debug': f"Connection error: {str(conn_error)}"
+                }).encode())
+                return
+
             try:
                 # Create Alembic config
                 alembic_cfg = Config()
                 alembic_cfg.set_main_option("script_location", "alembic")
                 
-                # Fix postgres:// to postgresql:// for SQLAlchemy compatibility
-                database_url = os.getenv("DATABASE_URL")
-                if database_url and database_url.startswith('postgres://'):
-                    database_url = database_url.replace('postgres://', 'postgresql://', 1)
-                alembic_cfg.set_main_option("sqlalchemy.url", database_url)
+                # Get the same DATABASE_URL that was used to create the engine
+                from src.db import ORIGINAL_DATABASE_URL as db_url
+                if db_url:
+                    alembic_cfg.set_main_option("sqlalchemy.url", db_url)
+                else:
+                    # Fallback to environment variable
+                    database_url = os.getenv("DATABASE_URL")
+                    if database_url and database_url.startswith('postgres://'):
+                        database_url = database_url.replace('postgres://', 'postgresql://', 1)
+                    alembic_cfg.set_main_option("sqlalchemy.url", database_url)
                 
                 # Run migration
                 command.upgrade(alembic_cfg, "head")
@@ -47,19 +67,25 @@ class handler(BaseHTTPRequestHandler):
                 }).encode())
                 
             except Exception as e:
+                import traceback
                 self.send_response(500)
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({
                     'error': 'MigrationError',
-                    'message': str(e)
+                    'message': str(e),
+                    'type': type(e).__name__,
+                    'traceback': traceback.format_exc()
                 }).encode())
                 
         except Exception as e:
+            import traceback
             self.send_response(500)
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
             self.wfile.write(json.dumps({
                 'error': 'InternalError',
-                'message': str(e)
+                'message': str(e),
+                'type': type(e).__name__,
+                'traceback': traceback.format_exc()
             }).encode())
