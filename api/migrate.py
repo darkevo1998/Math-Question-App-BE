@@ -41,9 +41,42 @@ class handler(BaseHTTPRequestHandler):
                 return
 
             try:
-                # Check if alembic directory exists
-                alembic_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "alembic")
-                if not os.path.exists(alembic_dir):
+                # Try Alembic first, but fallback to direct SQLAlchemy if it fails
+                try:
+                    # Check if alembic directory exists
+                    alembic_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "alembic")
+                    if not os.path.exists(alembic_dir):
+                        raise Exception("Alembic directory not found")
+                    
+                    # Create Alembic config
+                    alembic_cfg = Config()
+                    alembic_cfg.set_main_option("script_location", "alembic")
+                    
+                    # Get the same DATABASE_URL that was used to create the engine
+                    from src.db import ORIGINAL_DATABASE_URL as db_url
+                    if db_url:
+                        alembic_cfg.set_main_option("sqlalchemy.url", db_url)
+                    else:
+                        # Fallback to environment variable
+                        database_url = os.getenv("DATABASE_URL")
+                        if database_url and database_url.startswith('postgres://'):
+                            database_url = database_url.replace('postgres://', 'postgresql://', 1)
+                        alembic_cfg.set_main_option("sqlalchemy.url", database_url)
+                    
+                    # Run migration
+                    command.upgrade(alembic_cfg, "head")
+                    
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({
+                        'status': 'success',
+                        'message': 'Database migration completed successfully using Alembic',
+                        'method': 'alembic'
+                    }).encode())
+                    return
+                    
+                except Exception as alembic_error:
                     # Fallback: Create tables directly using SQLAlchemy
                     from src.db import Base
                     from src import models  # Import models to register them
@@ -57,35 +90,11 @@ class handler(BaseHTTPRequestHandler):
                     self.wfile.write(json.dumps({
                         'status': 'success',
                         'message': 'Database tables created successfully (fallback method)',
-                        'method': 'direct_sqlalchemy'
+                        'method': 'direct_sqlalchemy',
+                        'alembic_error': str(alembic_error)
                     }).encode())
                     return
-                
-                # Create Alembic config
-                alembic_cfg = Config()
-                alembic_cfg.set_main_option("script_location", "alembic")
-                
-                # Get the same DATABASE_URL that was used to create the engine
-                from src.db import ORIGINAL_DATABASE_URL as db_url
-                if db_url:
-                    alembic_cfg.set_main_option("sqlalchemy.url", db_url)
-                else:
-                    # Fallback to environment variable
-                    database_url = os.getenv("DATABASE_URL")
-                    if database_url and database_url.startswith('postgres://'):
-                        database_url = database_url.replace('postgres://', 'postgresql://', 1)
-                    alembic_cfg.set_main_option("sqlalchemy.url", database_url)
-                
-                # Run migration
-                command.upgrade(alembic_cfg, "head")
-                
-                self.send_response(200)
-                self.send_header('Content-Type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({
-                    'status': 'success',
-                    'message': 'Database migration completed successfully'
-                }).encode())
+
                 
             except Exception as e:
                 import traceback

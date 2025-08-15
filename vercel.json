@@ -44,6 +44,10 @@
     {
       "src": "api/test-models.py",
       "use": "@vercel/python"
+    },
+    {
+      "src": "api/test-alembic.py",
+      "use": "@vercel/python"
     }
   ],
   "routes": [
@@ -88,16 +92,15 @@
       "dest": "/api/test-models.py"
     },
     {
+      "src": "/api/test-alembic",
+      "dest": "/api/test-alembic.py"
+    },
+    {
       "src": "/(.*)",
       "dest": "app.py"
     }
   ],
   "env": {
     "PYTHONPATH": "."
-  },
-  "functions": {
-    "api/migrate.py": {
-      "includeFiles": ["alembic/**"]
-    }
   }
 }
