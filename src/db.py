@@ -40,10 +40,8 @@ if DATABASE_URL:
             max_overflow=0,
             pool_recycle=300,
             pool_timeout=30,
-            # More flexible SSL settings
+            # More flexible SSL settings for pg8000
             connect_args={
-                "sslmode": "require",
-                "connect_timeout": 10,
                 "application_name": "math-question-app"
             }
         )
