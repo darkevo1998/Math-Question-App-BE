@@ -6,8 +6,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Get DATABASE_URL from environment - prefer non-pooling for serverless
-DATABASE_URL = os.getenv("POSTGRES_URL_NON_POOLING") or os.getenv("DATABASE_URL")
-print(f"DEBUG: DATABASE_URL from environment: {DATABASE_URL}")
+POSTGRES_URL_NON_POOLING = os.getenv("POSTGRES_URL_NON_POOLING")
+DATABASE_URL_ENV = os.getenv("DATABASE_URL")
+print(f"DEBUG: POSTGRES_URL_NON_POOLING: {POSTGRES_URL_NON_POOLING}")
+print(f"DEBUG: DATABASE_URL from env: {DATABASE_URL_ENV}")
+
+DATABASE_URL = POSTGRES_URL_NON_POOLING or DATABASE_URL_ENV
+print(f"DEBUG: Final DATABASE_URL selected: {DATABASE_URL}")
 
 # Store the original URL for use in other modules
 ORIGINAL_DATABASE_URL = DATABASE_URL
@@ -23,24 +28,76 @@ if DATABASE_URL:
         print(f"DEBUG: Attempting to create engine with URL: {DATABASE_URL}")
         
         # Configure engine with more robust settings for Supabase
-        engine = create_engine(
-            DATABASE_URL, 
-            pool_pre_ping=True, 
-            future=True,
-            # Serverless-friendly pool settings
-            pool_size=1,
-            max_overflow=0,
-            pool_recycle=300,
-            pool_timeout=30,
-            # Don't specify module to let SQLAlchemy choose the best driver
-            # module="pg8000",
-            # More flexible SSL settings
-            connect_args={
-                "sslmode": "require",
-                "connect_timeout": 10,
-                "application_name": "math-question-app"
-            }
-        )
+        print(f"DEBUG: Creating engine with URL: {DATABASE_URL}")
+        
+        # Try with explicit pg8000 driver first
+        try:
+            engine = create_engine(
+                DATABASE_URL, 
+                pool_pre_ping=True, 
+                future=True,
+                # Serverless-friendly pool settings
+                pool_size=1,
+                max_overflow=0,
+                pool_recycle=300,
+                pool_timeout=30,
+                # Explicitly use pg8000 driver
+                module="pg8000",
+                # More flexible SSL settings
+                connect_args={
+                    "sslmode": "require",
+                    "connect_timeout": 10,
+                    "application_name": "math-question-app"
+                }
+            )
+            print("DEBUG: Engine created successfully with pg8000 driver")
+        except Exception as pg8000_error:
+            print(f"DEBUG: Failed to create engine with pg8000: {pg8000_error}")
+            print("DEBUG: Trying with psycopg2 driver...")
+            
+            try:
+                # Try with psycopg2 driver
+                engine = create_engine(
+                    DATABASE_URL, 
+                    pool_pre_ping=True, 
+                    future=True,
+                    # Serverless-friendly pool settings
+                    pool_size=1,
+                    max_overflow=0,
+                    pool_recycle=300,
+                    pool_timeout=30,
+                    # Use psycopg2 driver
+                    module="psycopg2",
+                    # More flexible SSL settings
+                    connect_args={
+                        "sslmode": "require",
+                        "connect_timeout": 10,
+                        "application_name": "math-question-app"
+                    }
+                )
+                print("DEBUG: Engine created successfully with psycopg2 driver")
+            except Exception as psycopg2_error:
+                print(f"DEBUG: Failed to create engine with psycopg2: {psycopg2_error}")
+                print("DEBUG: Trying without explicit driver specification...")
+                
+                # Final fallback: let SQLAlchemy choose the driver
+                engine = create_engine(
+                    DATABASE_URL, 
+                    pool_pre_ping=True, 
+                    future=True,
+                    # Serverless-friendly pool settings
+                    pool_size=1,
+                    max_overflow=0,
+                    pool_recycle=300,
+                    pool_timeout=30,
+                    # More flexible SSL settings
+                    connect_args={
+                        "sslmode": "require",
+                        "connect_timeout": 10,
+                        "application_name": "math-question-app"
+                    }
+                )
+                print("DEBUG: Engine created successfully without explicit driver")
         SessionLocal = scoped_session(sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True))
         print("DEBUG: Database engine created successfully")
         
@@ -62,11 +119,16 @@ if DATABASE_URL:
         print(f"DEBUG: Full traceback: {traceback.format_exc()}")
         engine = None
         SessionLocal = None
+        print("DEBUG: Engine and SessionLocal set to None due to exception")
 else:
     # Create a dummy engine for serverless environments without database
     engine = None
     SessionLocal = None
     print("DEBUG: No DATABASE_URL provided, skipping database setup")
+
+# Final debug output
+print(f"DEBUG: Final engine state: {engine is not None}")
+print(f"DEBUG: Final SessionLocal state: {SessionLocal is not None}")
 
 
 class Base(DeclarativeBase):

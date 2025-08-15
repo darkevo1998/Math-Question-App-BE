@@ -28,6 +28,14 @@
     {
       "src": "api/debug-migrate.py",
       "use": "@vercel/python"
+    },
+    {
+      "src": "api/test-connection.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "api/test-modules.py",
+      "use": "@vercel/python"
     }
   ],
   "routes": [
@@ -54,6 +62,14 @@
     {
       "src": "/api/debug-migrate",
       "dest": "/api/debug-migrate.py"
+    },
+    {
+      "src": "/api/test-connection",
+      "dest": "/api/test-connection.py"
+    },
+    {
+      "src": "/api/test-modules",
+      "dest": "/api/test-modules.py"
     },
     {
       "src": "/(.*)",
