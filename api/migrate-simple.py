@@ -7,8 +7,6 @@ import json
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.db import engine, SessionLocal
-from alembic import command
-from alembic.config import Config
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -41,50 +39,21 @@ class handler(BaseHTTPRequestHandler):
                 return
 
             try:
-                # Check if alembic directory exists
-                alembic_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "alembic")
-                if not os.path.exists(alembic_dir):
-                    # Fallback: Create tables directly using SQLAlchemy
-                    from src.db import Base
-                    from src import models  # Import models to register them
-                    
-                    # Create all tables
-                    Base.metadata.create_all(bind=engine)
-                    
-                    self.send_response(200)
-                    self.send_header('Content-Type', 'application/json')
-                    self.end_headers()
-                    self.wfile.write(json.dumps({
-                        'status': 'success',
-                        'message': 'Database tables created successfully (fallback method)',
-                        'method': 'direct_sqlalchemy'
-                    }).encode())
-                    return
+                # Import models to register them with SQLAlchemy
+                from src.db import Base
+                from src import models  # This imports all models
                 
-                # Create Alembic config
-                alembic_cfg = Config()
-                alembic_cfg.set_main_option("script_location", "alembic")
-                
-                # Get the same DATABASE_URL that was used to create the engine
-                from src.db import ORIGINAL_DATABASE_URL as db_url
-                if db_url:
-                    alembic_cfg.set_main_option("sqlalchemy.url", db_url)
-                else:
-                    # Fallback to environment variable
-                    database_url = os.getenv("DATABASE_URL")
-                    if database_url and database_url.startswith('postgres://'):
-                        database_url = database_url.replace('postgres://', 'postgresql://', 1)
-                    alembic_cfg.set_main_option("sqlalchemy.url", database_url)
-                
-                # Run migration
-                command.upgrade(alembic_cfg, "head")
+                # Create all tables
+                Base.metadata.create_all(bind=engine)
                 
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({
                     'status': 'success',
-                    'message': 'Database migration completed successfully'
+                    'message': 'Database tables created successfully using SQLAlchemy',
+                    'method': 'sqlalchemy_create_all',
+                    'tables_created': list(Base.metadata.tables.keys())
                 }).encode())
                 
             except Exception as e:

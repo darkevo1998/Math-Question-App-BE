@@ -36,6 +36,14 @@
     {
       "src": "api/test-modules.py",
       "use": "@vercel/python"
+    },
+    {
+      "src": "api/migrate-simple.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "api/test-models.py",
+      "use": "@vercel/python"
     }
   ],
   "routes": [
@@ -72,11 +80,24 @@
       "dest": "/api/test-modules.py"
     },
     {
+      "src": "/api/migrate-simple",
+      "dest": "/api/migrate-simple.py"
+    },
+    {
+      "src": "/api/test-models",
+      "dest": "/api/test-models.py"
+    },
+    {
       "src": "/(.*)",
       "dest": "app.py"
     }
   ],
   "env": {
     "PYTHONPATH": "."
+  },
+  "functions": {
+    "api/migrate.py": {
+      "includeFiles": ["alembic/**"]
+    }
   }
 }
