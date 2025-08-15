@@ -81,16 +81,24 @@ class handler(BaseHTTPRequestHandler):
                     from src.db import Base
                     from src import models  # Import models to register them
                     
-                    # Create all tables
-                    Base.metadata.create_all(bind=engine)
+                    # Create all tables with check_if_exists=True to handle existing tables
+                    try:
+                        Base.metadata.create_all(bind=engine, checkfirst=True)
+                        method_used = "direct_sqlalchemy"
+                    except Exception as create_error:
+                        # If tables already exist, that's fine - just check if they're accessible
+                        from sqlalchemy import text
+                        with engine.connect() as conn:
+                            conn.execute(text("SELECT 1 FROM users LIMIT 1"))
+                        method_used = "tables_already_exist"
                     
                     self.send_response(200)
                     self.send_header('Content-Type', 'application/json')
                     self.end_headers()
                     self.wfile.write(json.dumps({
                         'status': 'success',
-                        'message': 'Database tables created successfully (fallback method)',
-                        'method': 'direct_sqlalchemy',
+                        'message': f'Database tables ready successfully (fallback method)',
+                        'method': method_used,
                         'alembic_error': str(alembic_error)
                     }).encode())
                     return

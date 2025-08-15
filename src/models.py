@@ -42,10 +42,6 @@ class ProblemOption(Base):
     text: Mapped[str] = mapped_column(String(128), nullable=False)
     is_correct: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
-    __table_args__ = (
-        Index("ix_problem_options_problem_id", "problem_id"),
-    )
-
 
 class Submission(Base):
     __tablename__ = "submissions"

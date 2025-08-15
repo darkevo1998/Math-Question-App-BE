@@ -48,6 +48,10 @@
     {
       "src": "api/test-alembic.py",
       "use": "@vercel/python"
+    },
+    {
+      "src": "api/check-db.py",
+      "use": "@vercel/python"
     }
   ],
   "routes": [
@@ -94,6 +98,10 @@
     {
       "src": "/api/test-alembic",
       "dest": "/api/test-alembic.py"
+    },
+    {
+      "src": "/api/check-db",
+      "dest": "/api/check-db.py"
     },
     {
       "src": "/(.*)",

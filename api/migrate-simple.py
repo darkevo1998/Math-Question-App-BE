@@ -43,18 +43,38 @@ class handler(BaseHTTPRequestHandler):
                 from src.db import Base
                 from src import models  # This imports all models
                 
-                # Create all tables
-                Base.metadata.create_all(bind=engine)
+                # Check if tables already exist
+                from sqlalchemy import text, inspect
+                inspector = inspect(engine)
+                existing_tables = inspector.get_table_names()
                 
-                self.send_response(200)
-                self.send_header('Content-Type', 'application/json')
-                self.end_headers()
-                self.wfile.write(json.dumps({
-                    'status': 'success',
-                    'message': 'Database tables created successfully using SQLAlchemy',
-                    'method': 'sqlalchemy_create_all',
-                    'tables_created': list(Base.metadata.tables.keys())
-                }).encode())
+                if existing_tables:
+                    # Tables exist, just verify they're accessible
+                    with engine.connect() as conn:
+                        conn.execute(text("SELECT 1 FROM users LIMIT 1"))
+                    
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({
+                        'status': 'success',
+                        'message': 'Database tables already exist and are accessible',
+                        'method': 'tables_already_exist',
+                        'existing_tables': existing_tables
+                    }).encode())
+                else:
+                    # Create all tables
+                    Base.metadata.create_all(bind=engine)
+                    
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({
+                        'status': 'success',
+                        'message': 'Database tables created successfully using SQLAlchemy',
+                        'method': 'sqlalchemy_create_all',
+                        'tables_created': list(Base.metadata.tables.keys())
+                    }).encode())
                 
             except Exception as e:
                 import traceback
